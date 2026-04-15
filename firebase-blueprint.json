@@ -2,13 +2,23 @@
   "entities": {
     "settings": {
       "title": "Settings",
-      "description": "Global application settings including background image.",
+      "description": "Global application settings including background and section images.",
       "type": "object",
       "properties": {
         "backgroundImageUrl": {
           "type": "string",
           "format": "uri",
           "description": "The URL of the background image for the entire website."
+        },
+        "galleryImageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL of the image next to the menu."
+        },
+        "aboutImageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL of the image in the about section."
         },
         "updatedAt": {
           "type": "string",

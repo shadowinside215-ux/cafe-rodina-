@@ -129,7 +129,6 @@ const HeroCard = () => {
   return (
     <Card className="hero-card col-span-1 md:col-span-2 row-span-1 bg-brown-900/70 backdrop-blur-xl border border-accent/30 rounded-bento shadow-bento overflow-hidden relative flex flex-col justify-center p-8 md:p-12 min-h-[400px] text-foreground">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.2),transparent)] pointer-events-none" />
-      <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=1000')] bg-cover" />
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent/80 font-bold mb-4">
           Welcome to Salé
@@ -148,11 +147,11 @@ const HeroCard = () => {
   );
 };
 
-const GalleryCard = () => {
+const GalleryCard = ({ imageUrl }: { imageUrl: string }) => {
   return (
     <Card className="gallery-card col-span-1 row-span-1 bg-brown-900/50 backdrop-blur-md border border-accent/20 rounded-bento shadow-bento overflow-hidden relative min-h-[300px]">
       <img
-        src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=800"
+        src={imageUrl}
         alt="Café Interior"
         className="w-full h-full object-cover opacity-70"
         referrerPolicy="no-referrer"
@@ -172,7 +171,6 @@ const MenuCard = () => {
 
   return (
     <Card className="menu-card col-span-1 row-span-1 bg-brown-900/60 backdrop-blur-xl border border-accent/20 rounded-bento shadow-bento p-8 text-foreground relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=1000')] bg-cover" />
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-6">
           Signature Menu
@@ -196,7 +194,6 @@ const MenuCard = () => {
 const ContactCard = () => {
   return (
     <Card className="contact-card col-span-1 row-span-1 bg-brown-900/60 backdrop-blur-xl border border-accent/20 rounded-bento shadow-bento p-8 flex flex-col justify-between text-foreground relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=1000')] bg-cover" />
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-6">
           Find Us
@@ -247,7 +244,6 @@ const VibeCard = () => {
 
   return (
     <Card className="vibe-card col-span-1 row-span-1 bg-brown-900/70 backdrop-blur-xl border border-accent/30 rounded-bento shadow-bento p-8 flex flex-col justify-center text-foreground relative overflow-hidden">
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=1000')] bg-cover" />
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-4">
           Google Maps Reviews
@@ -288,11 +284,10 @@ const VibeCard = () => {
   );
 };
 
-const AboutSection = () => {
+const AboutSection = ({ imageUrl }: { imageUrl: string }) => {
   return (
     <section id="about" className="py-12">
       <Card className="bg-brown-900/80 backdrop-blur-2xl border border-accent/20 rounded-bento shadow-bento p-8 md:p-12 relative overflow-hidden text-foreground">
-        <div className="absolute inset-0 opacity-[0.08] pointer-events-none bg-[url('https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=1000')] bg-cover" />
         <div className="grid md:grid-cols-2 gap-12 items-center relative z-10">
           <div>
             <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-4">
@@ -315,7 +310,7 @@ const AboutSection = () => {
           </div>
           <div className="rounded-2xl overflow-hidden aspect-video md:aspect-square border border-accent/20">
             <img
-              src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000"
+              src={imageUrl}
               alt="Café Vibe"
               className="w-full h-full object-cover opacity-80"
               referrerPolicy="no-referrer"
@@ -341,45 +336,59 @@ const Footer = () => {
 // --- Main App ---
 
 const AppContent = () => {
-  const [bgUrl, setBgUrl] = useState('https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=2000');
+  const [settings, setSettings] = useState({
+    backgroundImageUrl: 'https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=2000',
+    galleryImageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=800',
+    aboutImageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000'
+  });
 
   useEffect(() => {
     const settingsRef = doc(db, 'settings', 'global');
     const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
-      if (docSnap.exists() && docSnap.data().backgroundImageUrl) {
-        setBgUrl(docSnap.data().backgroundImageUrl);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setSettings(prev => ({
+          backgroundImageUrl: data.backgroundImageUrl || prev.backgroundImageUrl,
+          galleryImageUrl: data.galleryImageUrl || prev.galleryImageUrl,
+          aboutImageUrl: data.aboutImageUrl || prev.aboutImageUrl
+        }));
       }
     });
     return () => unsubscribe();
   }, []);
 
   return (
-    <div 
-      className="min-h-screen font-bento selection:bg-accent/30 p-4 md:p-6 lg:p-10 flex flex-col gap-6 max-w-[1200px] mx-auto transition-all duration-1000"
-      style={{
-        backgroundImage: `linear-gradient(rgba(45, 36, 30, 0.3), rgba(45, 36, 30, 0.3)), url('${bgUrl}')`,
-        backgroundAttachment: 'fixed',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      }}
-    >
-      <Navbar />
-      
-      <main className="flex-grow flex flex-col gap-6">
-        {/* Bento Grid Container */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <HeroCard />
-          <GalleryCard />
-          <MenuCard />
-          <ContactCard />
-          <VibeCard />
-        </div>
+    <div className="min-h-screen font-bento selection:bg-accent/30 relative">
+      {/* Dynamic Background */}
+      <div 
+        className="fixed inset-0 z-[-1] transition-all duration-1000"
+        style={{
+          backgroundImage: `linear-gradient(rgba(45, 36, 30, 0.4), rgba(45, 36, 30, 0.4)), url('${settings.backgroundImageUrl}')`,
+          backgroundAttachment: 'fixed',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      />
 
-        {/* About Section */}
-        <AboutSection />
-      </main>
+      <div className="p-4 md:p-6 lg:p-10 flex flex-col gap-6 max-w-[1200px] mx-auto">
+        <Navbar />
+        
+        <main className="flex-grow flex flex-col gap-6">
+          {/* Bento Grid Container */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <HeroCard />
+            <GalleryCard imageUrl={settings.galleryImageUrl} />
+            <MenuCard />
+            <ContactCard />
+            <VibeCard />
+          </div>
 
-      <Footer />
+          {/* About Section */}
+          <AboutSection imageUrl={settings.aboutImageUrl} />
+        </main>
+
+        <Footer />
+      </div>
     </div>
   );
 };

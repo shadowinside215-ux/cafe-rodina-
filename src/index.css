@@ -31,11 +31,7 @@
     @apply border-border;
   }
   body {
-    /* High quality brick wall background */
-    background-image: linear-gradient(rgba(45, 36, 30, 0.3), rgba(45, 36, 30, 0.3)), url('https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=2000');
-    background-attachment: fixed;
-    background-size: cover;
-    background-position: center;
+    background-color: var(--color-bg);
     @apply text-foreground font-sans antialiased;
   }
 }
