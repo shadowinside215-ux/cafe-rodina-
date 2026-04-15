@@ -113,7 +113,7 @@ const MenuCard = () => {
   ];
 
   return (
-    <Card className="menu-card col-span-1 row-span-1 bg-white border-none rounded-bento shadow-bento p-8">
+    <Card className="menu-card col-span-1 row-span-1 bg-white/90 backdrop-blur-sm border-none rounded-bento shadow-bento p-8">
       <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-6">
         Signature Menu
       </div>
@@ -132,9 +132,72 @@ const MenuCard = () => {
   );
 };
 
+const VibeCard = () => {
+  const reviews = [
+    {
+      author: "Amine Fritry",
+      text: "The perfect place to work: calm, inspiring, and delicious! A huge thank you to the servers for their warm welcome and exceptional service. A café where work becomes a real pleasure!",
+      stats: "3 reviews • 2 years ago"
+    },
+    {
+      author: "Maria Ghanjaoui",
+      text: "A very nice cafe and pleasant service, I highly recommend it.",
+      stats: "Local Guide • 14 reviews • 3 years ago"
+    }
+  ];
+
+  const [currentReview, setCurrentReview] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentReview((prev) => (prev + 1) % reviews.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
+  return (
+    <Card className="vibe-card col-span-1 row-span-1 bg-gold-soft border-2 border-accent rounded-bento shadow-bento p-8 flex flex-col justify-center">
+      <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-4">
+        Google Maps Reviews
+      </div>
+      <div className="text-3xl font-extrabold text-brown mb-1">
+        4.0 ★
+      </div>
+      <div className="text-xs text-grey mb-4">
+        44 Verified Reviews
+      </div>
+      
+      <motion.div
+        key={currentReview}
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        className="min-h-[120px]"
+      >
+        <p className="text-[11px] text-brown italic leading-relaxed mb-4">
+          "{reviews[currentReview].text}"
+        </p>
+        <div className="flex flex-col">
+          <span className="text-[10px] font-bold text-dark">{reviews[currentReview].author}</span>
+          <span className="text-[9px] text-grey">{reviews[currentReview].stats}</span>
+        </div>
+      </motion.div>
+
+      <div className="flex flex-wrap gap-2 mt-6">
+        <Badge className="bg-brown text-white border-none rounded-sm text-[10px] font-semibold uppercase px-3 py-1">
+          Study Friendly
+        </Badge>
+        <Badge className="bg-brown text-white border-none rounded-sm text-[10px] font-semibold uppercase px-3 py-1">
+          High-Speed WiFi
+        </Badge>
+      </div>
+    </Card>
+  );
+};
+
 const ContactCard = () => {
   return (
-    <Card className="contact-card col-span-1 row-span-1 bg-white border-none rounded-bento shadow-bento p-8 flex flex-col justify-between">
+    <Card className="contact-card col-span-1 row-span-1 bg-white/90 backdrop-blur-sm border-none rounded-bento shadow-bento p-8 flex flex-col justify-between">
       <div>
         <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-6">
           Find Us
@@ -147,37 +210,15 @@ const ContactCard = () => {
         </p>
       </div>
       <div className="mt-6">
-        <a href="#" className="text-xs text-accent font-bold uppercase tracking-widest no-underline hover:underline">
-          Get Directions →
+        <a 
+          href="https://www.google.com/maps/search/?api=1&query=X7W8%2BVXC%2C+Av.+Atlas%2C+Salé" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-xs text-accent font-bold uppercase tracking-widest no-underline hover:underline"
+        >
+          GET DIRECTIONS →
         </a>
       </div>
-    </Card>
-  );
-};
-
-const VibeCard = () => {
-  return (
-    <Card className="vibe-card col-span-1 row-span-1 bg-gold-soft border-2 border-accent rounded-bento shadow-bento p-8 flex flex-col justify-center">
-      <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-4">
-        The Vibe
-      </div>
-      <div className="text-3xl font-extrabold text-brown mb-1">
-        4.0 ★
-      </div>
-      <div className="text-xs text-grey mb-4">
-        44 Verified Reviews
-      </div>
-      <div className="flex flex-wrap gap-2 mb-4">
-        <Badge className="bg-brown text-white border-none rounded-sm text-[10px] font-semibold uppercase px-3 py-1">
-          Study Friendly
-        </Badge>
-        <Badge className="bg-brown text-white border-none rounded-sm text-[10px] font-semibold uppercase px-3 py-1">
-          High-Speed WiFi
-        </Badge>
-      </div>
-      <p className="text-[11px] text-brown italic leading-relaxed">
-        "Best place to work and enjoy a latte in Salé."
-      </p>
     </Card>
   );
 };
@@ -185,8 +226,9 @@ const VibeCard = () => {
 const AboutSection = () => {
   return (
     <section id="about" className="py-12">
-      <Card className="bg-white border-none rounded-bento shadow-bento p-8 md:p-12">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+      <Card className="bg-white/95 backdrop-blur-md border-none rounded-bento shadow-bento p-8 md:p-12 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?auto=format&fit=crop&q=80&w=1000')] bg-cover" />
+        <div className="grid md:grid-cols-2 gap-12 items-center relative z-10">
           <div>
             <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-4">
               Our Story
@@ -222,9 +264,9 @@ const AboutSection = () => {
 
 const Footer = () => {
   return (
-    <footer className="py-12 text-center">
+    <footer className="py-12 text-center bg-white/10 backdrop-blur-sm rounded-t-3xl mt-12">
       <div className="font-serif text-xl font-bold text-brown mb-6">Café Rodina.</div>
-      <p className="text-xs text-grey uppercase tracking-widest">
+      <p className="text-xs text-white uppercase tracking-widest">
         © {new Date().getFullYear()} Café Rodina. All rights reserved.
       </p>
     </footer>

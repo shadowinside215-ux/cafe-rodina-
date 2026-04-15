@@ -14,16 +14,16 @@
   --color-white: #FFFFFF;
   --color-gold-soft: #F9F1DC;
   
-  --radius-bento: 20px;
-  --shadow-bento: 0 4px 20px rgba(0,0,0,0.05);
-  --border-bento: 1px solid rgba(0,0,0,0.03);
+  --radius-bento: 24px;
+  --shadow-bento: 0 10px 30px rgba(0,0,0,0.1);
+  --border-bento: 1px solid rgba(0,0,0,0.05);
 
   --color-background: var(--bg);
   --color-foreground: var(--dark);
   --color-primary: var(--accent);
   --color-secondary: var(--brown);
   --color-muted: var(--grey);
-  --color-border: rgba(0,0,0,0.03);
+  --color-border: rgba(0,0,0,0.05);
 }
 
 @layer base {
@@ -78,6 +78,10 @@
     @apply border-border;
   }
   body {
+    background-image: url('https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?auto=format&fit=crop&q=80&w=2000');
+    background-attachment: fixed;
+    background-size: cover;
+    background-position: center;
     @apply bg-background text-foreground font-sans antialiased;
   }
 }
