@@ -14,7 +14,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
   const [uploading, setUploading] = useState<string | null>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'backgroundImageUrl' | 'galleryImageUrl' | 'aboutImageUrl') => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, field: 'backgroundImageUrl' | 'galleryImageUrl' | 'aboutImageUrl' | 'logoImageUrl') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -65,7 +65,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
     }
   };
 
-  const ImageUploadSection = ({ label, field }: { label: string, field: 'backgroundImageUrl' | 'galleryImageUrl' | 'aboutImageUrl' }) => (
+  const ImageUploadSection = ({ label, field }: { label: string, field: 'backgroundImageUrl' | 'galleryImageUrl' | 'aboutImageUrl' | 'logoImageUrl' }) => (
     <div>
       <label className="block text-xs font-bold uppercase tracking-widest text-accent/70 mb-2">
         {label}
@@ -106,6 +106,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose }) => {
         <h2 className="font-serif text-2xl text-accent mb-6">Admin Panel</h2>
         
         <div className="space-y-8">
+          <ImageUploadSection label="Website Logo" field="logoImageUrl" />
           <ImageUploadSection label="Website Background" field="backgroundImageUrl" />
           <ImageUploadSection label="Gallery Image (Next to Menu)" field="galleryImageUrl" />
           <ImageUploadSection label="About Section Image" field="aboutImageUrl" />

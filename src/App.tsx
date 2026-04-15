@@ -8,20 +8,22 @@ import { auth, db, googleProvider } from "./firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 import { AuthProvider, useAuth } from "./AuthContext";
+import { LanguageProvider, useLanguage } from "./LanguageContext";
 import { AdminPanel } from "./AdminPanel";
 
 // --- Components ---
 
-const Navbar = () => {
+const Navbar = ({ logoUrl }: { logoUrl?: string }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isAdmin } = useAuth();
+  const { language, setLanguage, t, isRTL } = useLanguage();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const navLinks = [
-    { name: "Home", href: "#home" },
-    { name: "Menu", href: "#menu" },
-    { name: "About", href: "#about" },
-    { name: "Location", href: "#contact" },
+    { name: t('home'), href: "#home" },
+    { name: t('menu'), href: "#menu" },
+    { name: t('about'), href: "#about" },
+    { name: t('location'), href: "#contact" },
   ];
 
   const handleLogin = async () => {
@@ -34,12 +36,37 @@ const Navbar = () => {
 
   return (
     <header className="flex justify-between items-center px-4 py-6 md:px-10 bg-brown-900/60 backdrop-blur-xl rounded-2xl mb-4 border border-accent/20">
-      <div className="font-serif text-2xl font-bold text-accent tracking-tight">
-        Café Rodina.
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={() => isAdmin && setShowAdminPanel(true)}
+          className={`w-16 h-16 rounded-full border border-accent/30 overflow-hidden bg-brown-800 flex items-center justify-center shrink-0 transition-transform ${isAdmin ? 'cursor-pointer hover:scale-105 active:scale-95' : 'cursor-default'}`}
+          title={isAdmin ? "Open Admin Panel" : ""}
+        >
+          {logoUrl ? (
+            <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
+          ) : (
+            <Coffee className="text-accent" size={32} />
+          )}
+        </button>
+        <div className="font-serif text-2xl font-bold text-accent tracking-tight">
+          Café Rodina.
+        </div>
       </div>
       
       {/* Desktop Nav */}
       <nav className="hidden md:flex items-center space-x-8">
+        <div className="flex items-center gap-2 mr-4 border-r border-accent/20 pr-4">
+          {(['en', 'fr', 'ar'] as const).map((lang) => (
+            <button
+              key={lang}
+              onClick={() => setLanguage(lang)}
+              className={`text-[10px] font-bold uppercase transition-colors ${language === lang ? 'text-accent' : 'text-foreground/40 hover:text-foreground'}`}
+            >
+              {lang}
+            </button>
+          ))}
+        </div>
+
         {navLinks.map((link) => (
           <a
             key={link.name}
@@ -50,22 +77,12 @@ const Navbar = () => {
           </a>
         ))}
         
-        {isAdmin && (
-          <button 
-            onClick={() => setShowAdminPanel(true)}
-            className="text-accent hover:text-accent/80 transition-colors flex items-center gap-2 text-[13px] font-bold uppercase tracking-widest"
-          >
-            <Settings size={18} />
-            Admin
-          </button>
-        )}
-
         {user ? (
           <button 
             onClick={() => signOut(auth)}
             className="text-foreground/60 hover:text-foreground transition-colors text-[11px] font-bold uppercase tracking-widest"
           >
-            Logout
+            {t('logout')}
           </button>
         ) : (
           <button 
@@ -73,18 +90,24 @@ const Navbar = () => {
             className="text-accent/60 hover:text-accent transition-colors flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest"
           >
             <LogIn size={16} />
-            Admin Login
+            {t('adminLogin')}
           </button>
         )}
       </nav>
 
       {/* Mobile Menu Toggle */}
       <div className="flex items-center gap-4 md:hidden">
-        {isAdmin && (
-          <button onClick={() => setShowAdminPanel(true)} className="text-accent">
-            <Settings size={20} />
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {(['en', 'fr', 'ar'] as const).map((lang) => (
+            <button
+              key={lang}
+              onClick={() => setLanguage(lang)}
+              className={`text-[10px] font-bold uppercase ${language === lang ? 'text-accent' : 'text-foreground/40'}`}
+            >
+              {lang}
+            </button>
+          ))}
+        </div>
         <button className="text-accent" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
           {isMobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
         </button>
@@ -109,12 +132,12 @@ const Navbar = () => {
           ))}
           {!user && (
             <button onClick={handleLogin} className="text-accent text-sm font-bold uppercase tracking-widest text-left">
-              Admin Login
+              {t('adminLogin')}
             </button>
           )}
           {user && (
             <button onClick={() => signOut(auth)} className="text-foreground/60 text-sm font-bold uppercase tracking-widest text-left">
-              Logout
+              {t('logout')}
             </button>
           )}
         </motion.div>
@@ -126,21 +149,22 @@ const Navbar = () => {
 };
 
 const HeroCard = () => {
+  const { t } = useLanguage();
   return (
     <Card className="hero-card col-span-1 md:col-span-2 row-span-1 bg-brown-900/70 backdrop-blur-xl border border-accent/30 rounded-bento shadow-bento overflow-hidden relative flex flex-col justify-center p-8 md:p-12 min-h-[400px] text-foreground">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.2),transparent)] pointer-events-none" />
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent/80 font-bold mb-4">
-          Welcome to Salé
+          {t('welcome')}
         </div>
         <h1 className="font-serif text-5xl md:text-7xl mb-4 leading-none text-foreground">
-          Coffee. Comfort.<br />Creativity.
+          {t('heroTitle')}
         </h1>
         <p className="text-xl text-accent font-light mb-8">
-          Your premium workspace in the heart of the city.
+          {t('heroSub')}
         </p>
         <Button className="bg-accent hover:bg-accent/90 text-brown-900 font-bold text-sm uppercase tracking-widest rounded-full px-8 py-6 h-auto transition-transform hover:scale-105">
-          Visit Us
+          {t('visitUs')}
         </Button>
       </div>
     </Card>
@@ -161,6 +185,7 @@ const GalleryCard = ({ imageUrl }: { imageUrl: string }) => {
 };
 
 const MenuCard = () => {
+  const { t } = useLanguage();
   const items = [
     { name: "Espresso Gold", price: "18 MAD" },
     { name: "Moroccan Mint Special", price: "15 MAD" },
@@ -173,7 +198,7 @@ const MenuCard = () => {
     <Card className="menu-card col-span-1 row-span-1 bg-brown-900/60 backdrop-blur-xl border border-accent/20 rounded-bento shadow-bento p-8 text-foreground relative overflow-hidden">
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-6">
-          Signature Menu
+          {t('signatureMenu')}
         </div>
         <div className="space-y-4">
           {items.map((item) => (
@@ -184,7 +209,7 @@ const MenuCard = () => {
           ))}
         </div>
         <Button variant="link" className="text-accent p-0 h-auto mt-6 font-bold text-xs uppercase tracking-widest hover:no-underline hover:text-accent/80">
-          Full Menu →
+          {t('fullMenu')} →
         </Button>
       </div>
     </Card>
@@ -192,11 +217,12 @@ const MenuCard = () => {
 };
 
 const ContactCard = () => {
+  const { t } = useLanguage();
   return (
     <Card className="contact-card col-span-1 row-span-1 bg-brown-900/60 backdrop-blur-xl border border-accent/20 rounded-bento shadow-bento p-8 flex flex-col justify-between text-foreground relative overflow-hidden">
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-6">
-          Find Us
+          {t('findUs')}
         </div>
         <p className="text-sm leading-relaxed text-foreground/80 mb-4">
           X7W8+VXC, Av. Atlas,<br />Salé, Morocco
@@ -212,7 +238,7 @@ const ContactCard = () => {
           rel="noopener noreferrer"
           className="text-xs text-accent font-bold uppercase tracking-widest no-underline hover:underline"
         >
-          GET DIRECTIONS →
+          {t('getDirections')} →
         </a>
       </div>
     </Card>
@@ -220,6 +246,7 @@ const ContactCard = () => {
 };
 
 const VibeCard = () => {
+  const { t } = useLanguage();
   const reviews = [
     {
       author: "Amine Fritry",
@@ -246,13 +273,13 @@ const VibeCard = () => {
     <Card className="vibe-card col-span-1 row-span-1 bg-brown-900/70 backdrop-blur-xl border border-accent/30 rounded-bento shadow-bento p-8 flex flex-col justify-center text-foreground relative overflow-hidden">
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-4">
-          Google Maps Reviews
+          {t('reviewsTitle')}
         </div>
         <div className="text-3xl font-extrabold text-accent mb-1">
           4.0 ★
         </div>
         <div className="text-xs text-foreground/60 mb-4">
-          44 Verified Reviews
+          44 {t('verifiedReviews')}
         </div>
         
         <motion.div
@@ -273,10 +300,10 @@ const VibeCard = () => {
 
         <div className="flex flex-wrap gap-2 mt-6">
           <Badge className="bg-accent text-brown-900 border-none rounded-sm text-[10px] font-semibold uppercase px-3 py-1">
-            Study Friendly
+            {t('studyFriendly')}
           </Badge>
           <Badge className="bg-accent text-brown-900 border-none rounded-sm text-[10px] font-semibold uppercase px-3 py-1">
-            High-Speed WiFi
+            {t('highSpeedWifi')}
           </Badge>
         </div>
       </div>
@@ -285,26 +312,27 @@ const VibeCard = () => {
 };
 
 const AboutSection = ({ imageUrl }: { imageUrl: string }) => {
+  const { t } = useLanguage();
   return (
     <section id="about" className="py-12">
       <Card className="bg-brown-900/80 backdrop-blur-2xl border border-accent/20 rounded-bento shadow-bento p-8 md:p-12 relative overflow-hidden text-foreground">
         <div className="grid md:grid-cols-2 gap-12 items-center relative z-10">
           <div>
             <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-4">
-              Our Story
+              {t('ourStory')}
             </div>
-            <h2 className="font-serif text-4xl text-foreground mb-6">A Space Where Ideas Brew</h2>
+            <h2 className="font-serif text-4xl text-foreground mb-6">{t('aboutTitle')}</h2>
             <p className="text-foreground/80 leading-relaxed mb-6">
-              Café Rodina was born from a simple vision: to create a bridge between the traditional Moroccan café culture and the modern needs of students and freelancers in Salé.
+              {t('aboutText')}
             </p>
             <div className="grid grid-cols-2 gap-6">
               <div>
-                <h4 className="font-bold text-accent text-sm mb-2">Artisanal Coffee</h4>
-                <p className="text-xs text-foreground/60">Carefully sourced beans, roasted to perfection.</p>
+                <h4 className="font-bold text-accent text-sm mb-2">{t('artisanalCoffee')}</h4>
+                <p className="text-xs text-foreground/60">{t('coffeeDesc')}</p>
               </div>
               <div>
-                <h4 className="font-bold text-accent text-sm mb-2">Coworking Ready</h4>
-                <p className="text-xs text-foreground/60">High-speed Wi-Fi and plenty of outlets.</p>
+                <h4 className="font-bold text-accent text-sm mb-2">{t('coworkingReady')}</h4>
+                <p className="text-xs text-foreground/60">{t('coworkingDesc')}</p>
               </div>
             </div>
           </div>
@@ -323,11 +351,12 @@ const AboutSection = ({ imageUrl }: { imageUrl: string }) => {
 };
 
 const Footer = () => {
+  const { t } = useLanguage();
   return (
     <footer className="py-12 text-center bg-brown-900/80 backdrop-blur-xl rounded-t-3xl mt-12 border-t border-accent/20">
       <div className="font-serif text-xl font-bold text-accent mb-6">Café Rodina.</div>
       <p className="text-xs text-accent/40 uppercase tracking-widest">
-        © {new Date().getFullYear()} Café Rodina. All rights reserved.
+        © {new Date().getFullYear()} Café Rodina. {t('allRights')}
       </p>
     </footer>
   );
@@ -339,7 +368,8 @@ const AppContent = () => {
   const [settings, setSettings] = useState({
     backgroundImageUrl: 'https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=2000',
     galleryImageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=800',
-    aboutImageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000'
+    aboutImageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000',
+    logoImageUrl: ''
   });
 
   useEffect(() => {
@@ -350,7 +380,8 @@ const AppContent = () => {
         setSettings(prev => ({
           backgroundImageUrl: data.backgroundImageUrl || prev.backgroundImageUrl,
           galleryImageUrl: data.galleryImageUrl || prev.galleryImageUrl,
-          aboutImageUrl: data.aboutImageUrl || prev.aboutImageUrl
+          aboutImageUrl: data.aboutImageUrl || prev.aboutImageUrl,
+          logoImageUrl: data.logoImageUrl || prev.logoImageUrl
         }));
       }
     });
@@ -371,7 +402,7 @@ const AppContent = () => {
       />
 
       <div className="p-4 md:p-6 lg:p-10 flex flex-col gap-6 max-w-[1200px] mx-auto">
-        <Navbar />
+        <Navbar logoUrl={settings.logoImageUrl} />
         
         <main className="flex-grow flex flex-col gap-6">
           {/* Bento Grid Container */}
@@ -396,7 +427,9 @@ const AppContent = () => {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
     </AuthProvider>
   );
 }

@@ -10,6 +10,11 @@
           "format": "uri",
           "description": "The URL of the background image for the entire website."
         },
+        "logoImageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL of the website logo."
+        },
         "galleryImageUrl": {
           "type": "string",
           "format": "uri",
