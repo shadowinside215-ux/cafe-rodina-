@@ -426,6 +426,7 @@ const Footer = ({ onAdminClick }: { onAdminClick: () => void }) => {
 
 const AppContent = () => {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [settings, setSettings] = useState({
     backgroundImageUrl: 'https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=2000',
     galleryImageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=800',
@@ -438,16 +439,30 @@ const AppContent = () => {
     const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        setSettings(prev => ({
-          backgroundImageUrl: data.backgroundImageUrl || prev.backgroundImageUrl,
-          galleryImageUrl: data.galleryImageUrl || prev.galleryImageUrl,
-          aboutImageUrl: data.aboutImageUrl || prev.aboutImageUrl,
-          logoImageUrl: data.logoImageUrl || prev.logoImageUrl
-        }));
+        setSettings({
+          backgroundImageUrl: data.backgroundImageUrl || 'https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=2000',
+          galleryImageUrl: data.galleryImageUrl || 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=800',
+          aboutImageUrl: data.aboutImageUrl || 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=1000',
+          logoImageUrl: data.logoImageUrl || ''
+        });
       }
+      setIsLoading(false);
     });
     return () => unsubscribe();
   }, []);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-brown-900 flex items-center justify-center">
+        <motion.div
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        >
+          <Coffee className="text-accent" size={64} />
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen font-bento selection:bg-accent/30 relative">
