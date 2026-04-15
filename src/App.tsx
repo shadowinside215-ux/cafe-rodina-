@@ -13,17 +13,16 @@ import { AdminPanel } from "./AdminPanel";
 
 // --- Components ---
 
-const Navbar = ({ logoUrl }: { logoUrl?: string }) => {
+const Navbar = ({ logoUrl, showAdminPanel, setShowAdminPanel }: { logoUrl?: string, showAdminPanel: boolean, setShowAdminPanel: (show: boolean) => void }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, isAdmin } = useAuth();
   const { language, setLanguage, t, isRTL } = useLanguage();
-  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const navLinks = [
-    { name: t('home'), href: "#home" },
+    { name: t('home'), href: "#" },
     { name: t('menu'), href: "#menu" },
     { name: t('about'), href: "#about" },
-    { name: t('location'), href: "#contact" },
+    { name: t('location'), href: "https://www.google.com/maps/search/?api=1&query=X7W8%2BVXC%2C+Av.+Atlas%2C+Salé", external: true },
   ];
 
   const handleLogin = async () => {
@@ -34,13 +33,22 @@ const Navbar = ({ logoUrl }: { logoUrl?: string }) => {
     }
   };
 
+  // Prevent scrolling when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [isMobileMenuOpen]);
+
   return (
-    <header className="flex justify-between items-center px-4 py-6 md:px-10 bg-brown-900/60 backdrop-blur-xl rounded-2xl mb-4 border border-accent/20">
+    <header className="flex justify-between items-center px-4 py-6 md:px-10 bg-brown-900/60 backdrop-blur-xl rounded-2xl mb-4 border border-accent/20 sticky top-4 z-[60]">
       <div className="flex items-center gap-4">
         <button 
-          onClick={() => isAdmin && setShowAdminPanel(true)}
-          className={`w-16 h-16 rounded-full border border-accent/30 overflow-hidden bg-brown-800 flex items-center justify-center shrink-0 transition-transform ${isAdmin ? 'cursor-pointer hover:scale-105 active:scale-95' : 'cursor-default'}`}
-          title={isAdmin ? "Open Admin Panel" : ""}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="w-16 h-16 rounded-full border border-accent/30 overflow-hidden bg-brown-800 flex items-center justify-center shrink-0 transition-transform cursor-pointer hover:scale-105 active:scale-95"
+          title={t('home')}
         >
           {logoUrl ? (
             <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
@@ -71,26 +79,20 @@ const Navbar = ({ logoUrl }: { logoUrl?: string }) => {
           <a
             key={link.name}
             href={link.href}
+            target={link.external ? "_blank" : undefined}
+            rel={link.external ? "noopener noreferrer" : undefined}
             className="text-[13px] font-semibold uppercase tracking-widest text-foreground hover:text-accent transition-colors"
           >
             {link.name}
           </a>
         ))}
         
-        {user ? (
+        {user && (
           <button 
             onClick={() => signOut(auth)}
             className="text-foreground/60 hover:text-foreground transition-colors text-[11px] font-bold uppercase tracking-widest"
           >
             {t('logout')}
-          </button>
-        ) : (
-          <button 
-            onClick={handleLogin}
-            className="text-accent/60 hover:text-accent transition-colors flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest"
-          >
-            <LogIn size={16} />
-            {t('adminLogin')}
           </button>
         )}
       </nav>
@@ -108,38 +110,67 @@ const Navbar = ({ logoUrl }: { logoUrl?: string }) => {
             </button>
           ))}
         </div>
-        <button className="text-accent" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-          {isMobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
-        </button>
+        {/* Mobile Menu Toggle Hidden as requested */}
+        {/* <button className="text-accent z-[70]" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          {isMobileMenuOpen ? <X size={32} /> : <MenuIcon size={32} />}
+        </button> */}
       </div>
 
-      {/* Mobile Nav */}
+      {/* Full Screen Mobile Nav */}
       {isMobileMenuOpen && (
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="md:hidden bg-brown-900/90 backdrop-blur-xl absolute top-20 left-4 right-4 z-50 shadow-bento rounded-2xl border border-accent/20 py-6 px-6 flex flex-col space-y-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="md:hidden fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-6"
         >
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className="text-sm font-semibold uppercase tracking-widest text-foreground"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {link.name}
-            </a>
-          ))}
-          {!user && (
-            <button onClick={handleLogin} className="text-accent text-sm font-bold uppercase tracking-widest text-left">
-              {t('adminLogin')}
-            </button>
-          )}
-          {user && (
-            <button onClick={() => signOut(auth)} className="text-foreground/60 text-sm font-bold uppercase tracking-widest text-left">
-              {t('logout')}
-            </button>
-          )}
+          {/* Close Button */}
+          <button 
+            className="absolute top-8 right-8 text-accent hover:text-foreground transition-colors"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X size={40} />
+          </button>
+
+          <div className="flex flex-col items-center space-y-10 w-full">
+            {navLinks.map((link, idx) => (
+              <motion.a
+                key={link.name}
+                href={link.href}
+                target={link.external ? "_blank" : undefined}
+                rel={link.external ? "noopener noreferrer" : undefined}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: idx * 0.1, duration: 0.4 }}
+                className="text-4xl font-serif font-bold text-accent hover:text-foreground transition-all tracking-wide text-center uppercase"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {link.name}
+              </motion.a>
+            ))}
+            
+            <div className="h-px w-32 bg-accent/30 my-2" />
+
+            {user && (
+              <motion.button 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                onClick={() => {
+                  signOut(auth);
+                  setIsMobileMenuOpen(false);
+                }} 
+                className="text-foreground/60 text-base font-bold uppercase tracking-[6px] hover:text-foreground transition-colors"
+              >
+                {t('logout')}
+              </motion.button>
+            )}
+          </div>
+
+          <div className="absolute bottom-16 text-center">
+            <div className="font-serif text-2xl font-bold text-accent/30 mb-2">Café Rodina.</div>
+            <p className="text-xs text-accent/20 uppercase tracking-[4px]">Salé, Morocco</p>
+          </div>
         </motion.div>
       )}
 
@@ -151,7 +182,7 @@ const Navbar = ({ logoUrl }: { logoUrl?: string }) => {
 const HeroCard = () => {
   const { t } = useLanguage();
   return (
-    <Card className="hero-card col-span-1 md:col-span-2 row-span-1 bg-brown-900/70 backdrop-blur-xl border border-accent/30 rounded-bento shadow-bento overflow-hidden relative flex flex-col justify-center p-8 md:p-12 min-h-[400px] text-foreground">
+    <Card id="home" className="hero-card col-span-1 md:col-span-2 row-span-1 bg-brown-900/70 backdrop-blur-xl border border-accent/30 rounded-bento shadow-bento overflow-hidden relative flex flex-col justify-center p-8 md:p-12 min-h-[400px] text-foreground">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.2),transparent)] pointer-events-none" />
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent/80 font-bold mb-4">
@@ -163,9 +194,15 @@ const HeroCard = () => {
         <p className="text-xl text-accent font-light mb-8">
           {t('heroSub')}
         </p>
-        <Button className="bg-accent hover:bg-accent/90 text-brown-900 font-bold text-sm uppercase tracking-widest rounded-full px-8 py-6 h-auto transition-transform hover:scale-105">
-          {t('visitUs')}
-        </Button>
+        <a 
+          href="https://www.google.com/maps/search/?api=1&query=X7W8%2BVXC%2C+Av.+Atlas%2C+Salé" 
+          target="_blank" 
+          rel="noopener noreferrer"
+        >
+          <Button className="bg-accent hover:bg-accent/90 text-brown-900 font-bold text-sm uppercase tracking-widest rounded-full px-8 py-6 h-auto transition-transform hover:scale-105">
+            {t('visitUs')}
+          </Button>
+        </a>
       </div>
     </Card>
   );
@@ -195,7 +232,7 @@ const MenuCard = () => {
   ];
 
   return (
-    <Card className="menu-card col-span-1 row-span-1 bg-brown-900/60 backdrop-blur-xl border border-accent/20 rounded-bento shadow-bento p-8 text-foreground relative overflow-hidden">
+    <Card id="menu" className="menu-card col-span-1 row-span-1 bg-brown-900/60 backdrop-blur-xl border border-accent/20 rounded-bento shadow-bento p-8 text-foreground relative overflow-hidden">
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-6">
           {t('signatureMenu')}
@@ -219,7 +256,7 @@ const MenuCard = () => {
 const ContactCard = () => {
   const { t } = useLanguage();
   return (
-    <Card className="contact-card col-span-1 row-span-1 bg-brown-900/60 backdrop-blur-xl border border-accent/20 rounded-bento shadow-bento p-8 flex flex-col justify-between text-foreground relative overflow-hidden">
+    <Card id="contact" className="contact-card col-span-1 row-span-1 bg-brown-900/60 backdrop-blur-xl border border-accent/20 rounded-bento shadow-bento p-8 flex flex-col justify-between text-foreground relative overflow-hidden">
       <div className="relative z-10">
         <div className="text-[11px] uppercase tracking-[2px] text-accent font-bold mb-6">
           {t('findUs')}
@@ -336,7 +373,7 @@ const AboutSection = ({ imageUrl }: { imageUrl: string }) => {
               </div>
             </div>
           </div>
-          <div className="rounded-2xl overflow-hidden aspect-video md:aspect-square border border-accent/20">
+          <div className="rounded-2xl overflow-hidden aspect-[4/5] md:aspect-square border border-accent/20">
             <img
               src={imageUrl}
               alt="Café Vibe"
@@ -350,14 +387,37 @@ const AboutSection = ({ imageUrl }: { imageUrl: string }) => {
   );
 };
 
-const Footer = () => {
+const Footer = ({ onAdminClick }: { onAdminClick: () => void }) => {
   const { t } = useLanguage();
+  const { isAdmin, user } = useAuth();
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Login failed", error);
+    }
+  };
+
   return (
     <footer className="py-12 text-center bg-brown-900/80 backdrop-blur-xl rounded-t-3xl mt-12 border-t border-accent/20">
       <div className="font-serif text-xl font-bold text-accent mb-6">Café Rodina.</div>
-      <p className="text-xs text-accent/40 uppercase tracking-widest">
+      <p className="text-xs text-accent/40 uppercase tracking-widest mb-4">
         © {new Date().getFullYear()} Café Rodina. {t('allRights')}
       </p>
+      
+      {/* Hidden Admin Trigger */}
+      <div className="mt-4 flex justify-center opacity-10 hover:opacity-100 transition-opacity">
+        {isAdmin ? (
+          <button onClick={onAdminClick} className="text-[10px] text-accent uppercase tracking-widest">
+            {t('admin')}
+          </button>
+        ) : !user ? (
+          <button onClick={handleLogin} className="text-[10px] text-accent uppercase tracking-widest">
+            .
+          </button>
+        ) : null}
+      </div>
     </footer>
   );
 };
@@ -365,6 +425,7 @@ const Footer = () => {
 // --- Main App ---
 
 const AppContent = () => {
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [settings, setSettings] = useState({
     backgroundImageUrl: 'https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=2000',
     galleryImageUrl: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&q=80&w=800',
@@ -402,7 +463,11 @@ const AppContent = () => {
       />
 
       <div className="p-4 md:p-6 lg:p-10 flex flex-col gap-6 max-w-[1200px] mx-auto">
-        <Navbar logoUrl={settings.logoImageUrl} />
+        <Navbar 
+          logoUrl={settings.logoImageUrl} 
+          showAdminPanel={showAdminPanel} 
+          setShowAdminPanel={setShowAdminPanel} 
+        />
         
         <main className="flex-grow flex flex-col gap-6">
           {/* Bento Grid Container */}
@@ -418,7 +483,7 @@ const AppContent = () => {
           <AboutSection imageUrl={settings.aboutImageUrl} />
         </main>
 
-        <Footer />
+        <Footer onAdminClick={() => setShowAdminPanel(true)} />
       </div>
     </div>
   );
