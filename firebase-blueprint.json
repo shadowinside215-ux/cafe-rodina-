@@ -1,0 +1,52 @@
+{
+  "entities": {
+    "settings": {
+      "title": "Settings",
+      "description": "Global application settings including background image.",
+      "type": "object",
+      "properties": {
+        "backgroundImageUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "The URL of the background image for the entire website."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp of the last update."
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "The UID of the admin who updated the settings."
+        }
+      },
+      "required": ["backgroundImageUrl"]
+    },
+    "users": {
+      "title": "Users",
+      "description": "User profiles and roles.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "user"]
+        }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/settings/global": {
+      "schema": "settings",
+      "description": "Global settings for the application."
+    },
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "User profile documents."
+    }
+  }
+}

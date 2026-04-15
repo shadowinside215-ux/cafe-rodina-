@@ -1,14 +1,21 @@
 import { motion } from "motion/react";
-import { Coffee, Laptop, MapPin, Phone, Instagram, Facebook, Menu as MenuIcon, X } from "lucide-react";
+import { Coffee, Laptop, MapPin, Phone, Instagram, Facebook, Menu as MenuIcon, X, LogIn, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { auth, db, googleProvider } from "./firebase";
+import { signInWithPopup, signOut } from "firebase/auth";
+import { doc, onSnapshot } from "firebase/firestore";
+import { AuthProvider, useAuth } from "./AuthContext";
+import { AdminPanel } from "./AdminPanel";
 
 // --- Components ---
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isAdmin } = useAuth();
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const navLinks = [
     { name: "Home", href: "#home" },
@@ -16,6 +23,14 @@ const Navbar = () => {
     { name: "About", href: "#about" },
     { name: "Location", href: "#contact" },
   ];
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Login failed", error);
+    }
+  };
 
   return (
     <header className="flex justify-between items-center px-4 py-6 md:px-10 bg-brown-900/60 backdrop-blur-xl rounded-2xl mb-4 border border-accent/20">
@@ -34,19 +49,53 @@ const Navbar = () => {
             {link.name}
           </a>
         ))}
+        
+        {isAdmin && (
+          <button 
+            onClick={() => setShowAdminPanel(true)}
+            className="text-accent hover:text-accent/80 transition-colors flex items-center gap-2 text-[13px] font-bold uppercase tracking-widest"
+          >
+            <Settings size={18} />
+            Admin
+          </button>
+        )}
+
+        {user ? (
+          <button 
+            onClick={() => signOut(auth)}
+            className="text-foreground/60 hover:text-foreground transition-colors text-[11px] font-bold uppercase tracking-widest"
+          >
+            Logout
+          </button>
+        ) : (
+          <button 
+            onClick={handleLogin}
+            className="text-accent/60 hover:text-accent transition-colors flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest"
+          >
+            <LogIn size={16} />
+            Admin Login
+          </button>
+        )}
       </nav>
 
       {/* Mobile Menu Toggle */}
-      <button className="md:hidden text-accent" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
-        {isMobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
-      </button>
+      <div className="flex items-center gap-4 md:hidden">
+        {isAdmin && (
+          <button onClick={() => setShowAdminPanel(true)} className="text-accent">
+            <Settings size={20} />
+          </button>
+        )}
+        <button className="text-accent" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+          {isMobileMenuOpen ? <X size={24} /> : <MenuIcon size={24} />}
+        </button>
+      </div>
 
       {/* Mobile Nav */}
       {isMobileMenuOpen && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="md:hidden bg-brown-900/95 backdrop-blur-2xl absolute top-20 left-4 right-4 z-50 shadow-bento rounded-2xl border border-accent/20 py-6 px-6 flex flex-col space-y-4"
+          className="md:hidden bg-brown-900/90 backdrop-blur-xl absolute top-20 left-4 right-4 z-50 shadow-bento rounded-2xl border border-accent/20 py-6 px-6 flex flex-col space-y-4"
         >
           {navLinks.map((link) => (
             <a
@@ -58,8 +107,20 @@ const Navbar = () => {
               {link.name}
             </a>
           ))}
+          {!user && (
+            <button onClick={handleLogin} className="text-accent text-sm font-bold uppercase tracking-widest text-left">
+              Admin Login
+            </button>
+          )}
+          {user && (
+            <button onClick={() => signOut(auth)} className="text-foreground/60 text-sm font-bold uppercase tracking-widest text-left">
+              Logout
+            </button>
+          )}
         </motion.div>
       )}
+
+      {showAdminPanel && <AdminPanel onClose={() => setShowAdminPanel(false)} />}
     </header>
   );
 };
@@ -96,9 +157,6 @@ const GalleryCard = () => {
         className="w-full h-full object-cover opacity-70"
         referrerPolicy="no-referrer"
       />
-      <div className="absolute bottom-4 left-4 bg-brown-900/90 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-semibold text-accent border border-accent/30">
-        Instagram Aesthetic ✨
-      </div>
     </Card>
   );
 };
@@ -273,10 +331,6 @@ const Footer = () => {
   return (
     <footer className="py-12 text-center bg-brown-900/80 backdrop-blur-xl rounded-t-3xl mt-12 border-t border-accent/20">
       <div className="font-serif text-xl font-bold text-accent mb-6">Café Rodina.</div>
-      <div className="flex justify-center gap-6 mb-8">
-        <a href="#" className="text-accent/60 hover:text-accent transition-colors"><Instagram size={20} /></a>
-        <a href="#" className="text-accent/60 hover:text-accent transition-colors"><Facebook size={20} /></a>
-      </div>
       <p className="text-xs text-accent/40 uppercase tracking-widest">
         © {new Date().getFullYear()} Café Rodina. All rights reserved.
       </p>
@@ -286,9 +340,29 @@ const Footer = () => {
 
 // --- Main App ---
 
-export default function App() {
+const AppContent = () => {
+  const [bgUrl, setBgUrl] = useState('https://images.unsplash.com/photo-1590059235658-f72fd2d6d282?auto=format&fit=crop&q=80&w=2000');
+
+  useEffect(() => {
+    const settingsRef = doc(db, 'settings', 'global');
+    const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
+      if (docSnap.exists() && docSnap.data().backgroundImageUrl) {
+        setBgUrl(docSnap.data().backgroundImageUrl);
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <div className="min-h-screen font-bento selection:bg-accent/30 p-4 md:p-6 lg:p-10 flex flex-col gap-6 max-w-[1200px] mx-auto">
+    <div 
+      className="min-h-screen font-bento selection:bg-accent/30 p-4 md:p-6 lg:p-10 flex flex-col gap-6 max-w-[1200px] mx-auto transition-all duration-1000"
+      style={{
+        backgroundImage: `linear-gradient(rgba(45, 36, 30, 0.3), rgba(45, 36, 30, 0.3)), url('${bgUrl}')`,
+        backgroundAttachment: 'fixed',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
       <Navbar />
       
       <main className="flex-grow flex flex-col gap-6">
@@ -307,5 +381,13 @@ export default function App() {
 
       <Footer />
     </div>
+  );
+};
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
